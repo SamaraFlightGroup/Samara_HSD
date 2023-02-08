@@ -4,13 +4,13 @@
 #include "MIMXRT1062.h"
 #include "printf.h"
 #include "GPIO.h"
-#include "Periodic.hpp"
+#include "Task.hpp"
 
 #define TIME_NUM_PIT_CHANNELS 4
 
 void Time_Init();
 //void Time_SetPeriodic(void (*function)(), uint32_t period);
-void Time_SetPeriodic(Periodic* p);
+//void Time_SetPeriodic(Task* p);
 uint64_t Time_GetMicros();
 uint64_t Time_GetMillis();
 uint64_t Time_GetDeltaMicros(uint64_t compareTime);

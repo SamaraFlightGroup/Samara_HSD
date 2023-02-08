@@ -1,11 +1,11 @@
 #include "time.hpp"
 
 static uint32_t overflow = 0;
-static uint8_t PITChannel = 0;
-static void (*PITfunctions[TIME_NUM_PIT_CHANNELS])();
-Periodic* PITObjects[TIME_NUM_PIT_CHANNELS];
-static uint32_t functionPeriods[TIME_NUM_PIT_CHANNELS];
-static uint32_t currPeriods[TIME_NUM_PIT_CHANNELS];
+//static uint8_t PITChannel = 0;
+//static void (*PITfunctions[TIME_NUM_PIT_CHANNELS])();
+Task* PITObjects[TIME_NUM_PIT_CHANNELS];
+//static uint32_t functionPeriods[TIME_NUM_PIT_CHANNELS];
+//static uint32_t currPeriods[TIME_NUM_PIT_CHANNELS];
 
 void Time_Init()
 {
@@ -46,9 +46,9 @@ void Time_Init()
     PITChannel++;
 }*/
 
-void Time_SetPeriodic(Periodic* p)
+/*void Time_SetPeriodic(Task* p)
 {
-    const uint32_t clockFrequency = 1000000;
+    //const uint32_t clockFrequency = 1000000;
 
     PITObjects[PITChannel] = p;
     functionPeriods[PITChannel] = p->getPeriod();
@@ -66,7 +66,7 @@ void Time_SetPeriodic(Periodic* p)
     NVIC_EnableIRQ(PIT_IRQn);
 
     PITChannel++;
-}
+}*/
 
 uint64_t Time_GetMicros()
 {
@@ -111,7 +111,7 @@ void GPT1_IRQHandler()
     overflow++;
 }
 
-void PIT_IRQHandler() asm("PIT_IRQHandler"); //prevent C++ name mangling
+/*void PIT_IRQHandler() asm("PIT_IRQHandler"); //prevent C++ name mangling
 void PIT_IRQHandler()
 {
     for (uint8_t i = 0; i < TIME_NUM_PIT_CHANNELS; i++)
@@ -122,4 +122,4 @@ void PIT_IRQHandler()
         }
         PIT->CHANNEL[i].TFLG = PIT_TFLG_TIF_MASK;
     }
-}
+}*/
