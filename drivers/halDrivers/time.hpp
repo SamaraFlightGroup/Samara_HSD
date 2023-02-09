@@ -9,7 +9,7 @@
 #define TIME_NUM_PIT_CHANNELS 4
 
 void Time_Init();
-//void Time_SetPeriodic(void (*function)(), uint32_t period);
+void Time_SetPeriodic(void (*function)(), uint32_t period);
 void Time_SetPeriodic(Periodic* p);
 uint64_t Time_GetMicros();
 uint64_t Time_GetMillis();
