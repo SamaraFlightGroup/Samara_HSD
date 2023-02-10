@@ -6,7 +6,7 @@
 #include "GPIO.h"
 #include "Task.hpp"
 
-#define TIME_NUM_PIT_CHANNELS 4
+//#define TIME_NUM_PIT_CHANNELS 4
 
 void Time_Init();
 //void Time_SetPeriodic(void (*function)(), uint32_t period);

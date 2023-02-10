@@ -3,7 +3,7 @@
 static uint32_t overflow = 0;
 //static uint8_t PITChannel = 0;
 //static void (*PITfunctions[TIME_NUM_PIT_CHANNELS])();
-Task* PITObjects[TIME_NUM_PIT_CHANNELS];
+//Task* PITObjects[TIME_NUM_PIT_CHANNELS];
 //static uint32_t functionPeriods[TIME_NUM_PIT_CHANNELS];
 //static uint32_t currPeriods[TIME_NUM_PIT_CHANNELS];
 

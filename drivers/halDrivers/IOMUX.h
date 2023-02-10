@@ -3,6 +3,7 @@
 
 #include "MIMXRT1062.h"
 #include "stdbool.h"
+#include "pinInfo.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -43,7 +44,7 @@ extern "C"
      * Sets the alternative function and Software input on field for the given pin
      * @param pin_num teensy pin number
      * @param function alt mode function for pin, see datasheet
-     * @param biDirectional enable Software input on field or not generally usually false
+     * @param biDirectional enable Software input on field or not (generally usually false)
      */
     void IOMUX_MuxSet(uint8_t pin_num, uint8_t function, bool biDirectional);
 
@@ -114,7 +115,7 @@ extern "C"
      * @param pin_num given teensy pin
      * @param slew_rate enable slew or not
      */
-    void IOMUX_Slew(uint8_t pin_num, uint8_t slew_rate);
+    void IOMUX_Slew(uint8_t pin_num, bool slew_rate);
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,6 @@
 
 
 #include "MIMXRT1062.h"
-// #include "gpio.h"
 #include <stdbool.h>
 #include <stddef.h>
 

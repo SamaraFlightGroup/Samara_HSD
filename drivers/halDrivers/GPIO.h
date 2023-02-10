@@ -2,6 +2,7 @@
 #define GPIO_H
 
 #include "MIMXRT1062.h"
+#include "pinInfo.h"
 
 #ifdef __cplusplus
 extern "C"
