@@ -2,9 +2,6 @@
 #define TIME_HPP
 
 #include "MIMXRT1062.h"
-#include "printf.h"
-#include "GPIO.h"
-#include "Task.hpp"
 
 //#define TIME_NUM_PIT_CHANNELS 4
 

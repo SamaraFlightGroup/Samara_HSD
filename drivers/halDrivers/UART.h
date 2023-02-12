@@ -19,7 +19,7 @@ extern "C"
 
     typedef enum
     {
-        THERE_IS_NO_UART0_FOR_SOME_DUMB_REASON,
+        NO_UART0,
         UART1,
         UART2,
         UART3,

@@ -4,9 +4,6 @@
 #include "MIMXRT1062.h"
 #include <stdbool.h>
 #include <stddef.h>
-#include "GPIO.h"
-#include "printf.h"
-#include "math.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -28,7 +25,7 @@ extern "C"
 
     typedef enum
     {
-        THERE_IS_NO_I2C0_FOR_SOME_DUMB_REASON,
+        NO_I2C,
         I2C1,
         I2C2,
         I2C3,
@@ -59,7 +56,7 @@ extern "C"
     {
         I2C_DIRECTION_WRITE,
         I2C_DIRECTION_READ,
-        I2C_DIRECTION_NONE
+        I2C_DIRECTION_NONE,
     } I2C_Direction_t;
 
     typedef struct
