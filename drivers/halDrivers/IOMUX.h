@@ -46,7 +46,7 @@ extern "C"
      * @param function alt mode function for pin, see datasheet
      * @param biDirectional enable Software input on field or not (generally usually false)
      */
-    void IOMUX_MuxSet(uint8_t pin_num, uint8_t function, bool biDirectional);
+    void IOMUX_SetMux(uint8_t pin_num, int8_t function, bool biDirectional);
 
     /**
      * @brief
@@ -54,7 +54,7 @@ extern "C"
      * @param daisy_register daisy chain peripheral
      * @param daisy which pad to use, see datasheet
      */
-    void IOMUX_Input(iomuxc_select_input_t daisy_register, uint8_t daisy);
+    void IOMUX_SetInput(iomuxc_select_input_t daisy_register, int8_t daisy);
 
     /**
      * @brief
@@ -75,7 +75,7 @@ extern "C"
      * @param pin_num given teensy pin
      * @param hysteris hysteris enable or not
      */
-    void IOMUX_Hystersis(uint8_t pin_num, bool hysteris);
+    void IOMUX_SetHystersis(uint8_t pin_num, bool hysteris);
 
     /**
      * @brief
@@ -83,7 +83,7 @@ extern "C"
      * @param pin_num given teensy pin
      * @param resistor pull up resistor setting(use enum)
      */
-    void IOMUX_Res(uint8_t pin_num, IOMUX_Resistor_t resistor);
+    void IOMUX_SetRes(uint8_t pin_num, IOMUX_Resistor_t resistor);
 
     /**
      * @brief
@@ -91,7 +91,7 @@ extern "C"
      * @param pin_num given teensy pin
      * @param openDrain openDrain enable or not
      */
-    void IOMUX_OpenDrain(uint8_t pin_num, bool openDrain);
+    void IOMUX_SetOpenDrain(uint8_t pin_num, bool openDrain);
 
     /**
      * @brief
@@ -99,7 +99,7 @@ extern "C"
      * @param pin_num given teensy pin
      * @param speed speed of pin(use enum)
      */
-    void IOMUX_Speed(uint8_t pin_num, IOMUX_Speed_t speed);
+    void IOMUX_SetSpeed(uint8_t pin_num, IOMUX_Speed_t speed);
 
     /**
      * @brief
@@ -107,7 +107,7 @@ extern "C"
      * @param pin_num given teensy pin
      * @param drive_strength drive strength of pin(use enum)
      */
-    void IOMUX_Strength(uint8_t pin_num, IOMUX_DriveStrength_t drive_strength);
+    void IOMUX_SetStrength(uint8_t pin_num, IOMUX_DriveStrength_t drive_strength);
 
     /**
      * @brief
@@ -115,7 +115,7 @@ extern "C"
      * @param pin_num given teensy pin
      * @param slew_rate enable slew or not
      */
-    void IOMUX_Slew(uint8_t pin_num, bool slew_rate);
+    void IOMUX_SetSlew(uint8_t pin_num, bool slew_rate);
 
 #ifdef __cplusplus
 }
