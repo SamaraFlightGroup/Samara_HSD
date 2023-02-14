@@ -10,12 +10,6 @@ static uint8_t txGetIndex[UART_NUM_PERIPHERALS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 static uint8_t rxPutIndex[UART_NUM_PERIPHERALS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 static uint8_t rxGetIndex[UART_NUM_PERIPHERALS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-static void UART_Write(UART_Peripheral_t uartNum, uint8_t data);
-static void UART_WriteBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t size);
-static uint8_t UART_Read(UART_Peripheral_t uartNum);
-static void UART_ReadBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t* size);
-static bool UART_IsDataAvailable(UART_Peripheral_t uartNum);
-static uint8_t UART_GetBytesAvailable(UART_Peripheral_t uartNum);
 static void LPUART_IRQHandler(UART_Peripheral_t uartNum);
 static inline uint8_t getTXFIFOCount(LPUART_Type* uart);
 static inline uint8_t getRXFIFOCount(LPUART_Type* uart);
@@ -103,6 +97,72 @@ void UART_SetConfig(UART_Config_t* config)
     __enable_irq();
 }
 
+void UART_Write(UART_Peripheral_t uartNum, uint8_t data)
+{
+    LPUART_Type* uart = peripheralToAddress[uartNum];
+    txData[uartNum][txPutIndex[uartNum]] = data;
+    txPutIndex[uartNum]++;
+    uart->CTRL |= LPUART_CTRL_TIE_MASK;
+}
+
+void UART_WriteBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t size)
+{
+    LPUART_Type* uart = peripheralToAddress[uartNum];
+    for (uint8_t i = 0; i < size; i++)
+    {
+        txData[uartNum][txPutIndex[uartNum]] = data[i];
+        txPutIndex[uartNum]++;
+    }
+    uart->CTRL |= LPUART_CTRL_TIE_MASK;
+}
+
+uint8_t UART_Read(UART_Peripheral_t uartNum)
+{
+    uint8_t data = 0xEE;
+
+    if (UART_IsDataAvailable(uartNum))
+    {
+        data = rxData[uartNum][rxGetIndex[uartNum]];
+        rxGetIndex[uartNum]++;
+    }
+    return data;
+}
+
+void UART_ReadBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t* size)
+{
+    if (UART_GetBytesAvailable(uartNum) < *size)
+    {
+        *size = UART_GetBytesAvailable(uartNum);
+    }
+
+    for (uint8_t i = 0; i < *size; i++)
+    {
+        data[i] = rxData[uartNum][rxGetIndex[uartNum]];
+        rxGetIndex[uartNum]++;
+    }
+}
+
+bool UART_IsDataAvailable(UART_Peripheral_t uartNum)
+{
+    return rxGetIndex[uartNum] != rxPutIndex[uartNum];
+}
+
+uint8_t UART_GetBytesAvailable(UART_Peripheral_t uartNum)
+{
+    if (rxGetIndex[uartNum] < rxPutIndex[uartNum])
+    {
+        return rxPutIndex[uartNum] - rxGetIndex[uartNum];
+    }
+    else if (rxGetIndex[uartNum] > rxPutIndex[uartNum])
+    {
+        return 255 - rxGetIndex[uartNum] + rxPutIndex[uartNum] + 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 inline void UART1_Write(uint8_t data) { UART_Write(UART1, data); }
 inline void UART2_Write(uint8_t data) { UART_Write(UART2, data); }
 inline void UART3_Write(uint8_t data) { UART_Write(UART3, data); }
@@ -165,72 +225,6 @@ void LPUART5_IRQHandler() { LPUART_IRQHandler(UART5); }
 void LPUART6_IRQHandler() { LPUART_IRQHandler(UART6); }
 void LPUART7_IRQHandler() { LPUART_IRQHandler(UART7); }
 void LPUART8_IRQHandler() { LPUART_IRQHandler(UART8); }
-
-static void UART_Write(UART_Peripheral_t uartNum, uint8_t data)
-{
-    LPUART_Type* uart = peripheralToAddress[uartNum];
-    txData[uartNum][txPutIndex[uartNum]] = data;
-    txPutIndex[uartNum]++;
-    uart->CTRL |= LPUART_CTRL_TIE_MASK;
-}
-
-static void UART_WriteBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t size)
-{
-    LPUART_Type* uart = peripheralToAddress[uartNum];
-    for (uint8_t i = 0; i < size; i++)
-    {
-        txData[uartNum][txPutIndex[uartNum]] = data[i];
-        txPutIndex[uartNum]++;
-    }
-    uart->CTRL |= LPUART_CTRL_TIE_MASK;
-}
-
-static uint8_t UART_Read(UART_Peripheral_t uartNum)
-{
-    uint8_t data = 0xEE;
-
-    if (UART_IsDataAvailable(uartNum))
-    {
-        data = rxData[uartNum][rxGetIndex[uartNum]];
-        rxGetIndex[uartNum]++;
-    }
-    return data;
-}
-
-static void UART_ReadBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t* size)
-{
-    if (UART_GetBytesAvailable(uartNum) < *size)
-    {
-        *size = UART_GetBytesAvailable(uartNum);
-    }
-
-    for (uint8_t i = 0; i < *size; i++)
-    {
-        data[i] = rxData[uartNum][rxGetIndex[uartNum]];
-        rxGetIndex[uartNum]++;
-    }
-}
-
-static inline bool UART_IsDataAvailable(UART_Peripheral_t uartNum)
-{
-    return rxGetIndex[uartNum] != rxPutIndex[uartNum];
-}
-
-static uint8_t UART_GetBytesAvailable(UART_Peripheral_t uartNum)
-{
-    if (rxGetIndex[uartNum] < rxPutIndex[uartNum])
-    {
-        return rxPutIndex[uartNum] - rxGetIndex[uartNum];
-    }
-    else if (rxGetIndex[uartNum] > rxPutIndex[uartNum])
-    {
-        return 255 - rxGetIndex[uartNum] + rxPutIndex[uartNum] + 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 static void LPUART_IRQHandler(UART_Peripheral_t uartNum)
 {

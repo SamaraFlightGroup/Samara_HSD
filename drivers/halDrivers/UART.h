@@ -72,6 +72,13 @@ extern "C"
     void UART_GetConfig(UART_Config_t* config, UART_Peripheral_t uartNum, uint32_t baudRate, bool tenBitMode, uint8_t overSamplingRatio, bool bothEdgeSampling, bool MSBFirst, bool txInvert, bool rxInvert, UART_Parity_t parity, bool twoStopBits);
     void UART_SetConfig(UART_Config_t* config);
 
+    void UART_Write(UART_Peripheral_t uartNum, uint8_t data);
+    void UART_WriteBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t size);
+    uint8_t UART_Read(UART_Peripheral_t uartNum);
+    void UART_ReadBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t* size);
+    bool UART_IsDataAvailable(UART_Peripheral_t uartNum);
+    uint8_t UART_GetBytesAvailable(UART_Peripheral_t uartNum);
+
     void UART1_Write(uint8_t data);
     void UART2_Write(uint8_t data);
     void UART3_Write(uint8_t data);
