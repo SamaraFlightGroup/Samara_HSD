@@ -15,8 +15,13 @@ static inline uint8_t getTXFIFOCount(LPUART_Type* uart);
 static inline uint8_t getRXFIFOCount(LPUART_Type* uart);
 static uint16_t getDivider(UART_Config_t* config);
 
+static bool init = false;
 void UART_Init()
 {
+    if(init)
+    {
+        return;
+    }
     CCM->CCGR3 = 0xFFFFFFFF;
     CCM->CSCDR1 &= ~CCM_CSCDR1_UART_CLK_PODF_MASK;
 
@@ -24,15 +29,21 @@ void UART_Init()
     IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_PAD_CTL_PAD_GPIO_B1_13] = IOMUXC_SW_MUX_CTL_PAD_MUX_MODE(1); // RX
     //IOMUXC->SELECT_INPUT[kIOMUXC_LPUART5_TX_SELECT_INPUT] = 1;
     IOMUXC->SELECT_INPUT[kIOMUXC_LPUART5_RX_SELECT_INPUT] = 1;
+    init = true;
 }
-
+static bool printfInit = false;
 void printf_Init()
 {
+    if(printfInit)
+    {
+        return;
+    }
     UART_Init();
 
     UART_Config_t config;
     UART_GetDefaultConfig(&config, UART5, 115200);
     UART_SetConfig(&config);
+    printfInit = true;
 }
 
 void UART_GetDefaultConfig(UART_Config_t* config, UART_Peripheral_t uartNum, uint32_t baudRate)

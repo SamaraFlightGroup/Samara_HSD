@@ -6,9 +6,13 @@ static uint32_t overflow = 0;
 //Task* PITObjects[TIME_NUM_PIT_CHANNELS];
 //static uint32_t functionPeriods[TIME_NUM_PIT_CHANNELS];
 //static uint32_t currPeriods[TIME_NUM_PIT_CHANNELS];
-
+static bool init = false;
 void Time_Init()
 {
+    if(init)
+    {
+        return;
+    }
     // Enable timer clocks
     CCM->CCGR0 |= 0xF << CCM_CCGR0_CG12_SHIFT;                                  // enable GPT2 clock
     CCM->CCGR1 |= (0xF << CCM_CCGR1_CG10_SHIFT) | CCM_CCGR1_CG6_MASK;           // enable GPT1 clock, PIT clock
@@ -22,6 +26,7 @@ void Time_Init()
     NVIC_EnableIRQ(GPT1_IRQn);  // enable GPT interrupts
     GPT1->IR = GPT_IR_OF1IE(1); // enable Compare 1 interrupt
     GPT1->CR |= GPT_CR_EN(1);   // enable timer
+    init = true;
 }
 
 /*void Time_SetPeriodic(void (*function)(), uint32_t period)
