@@ -1,4 +1,6 @@
 #include "UART.h"
+#include "GPIO.h"
+#include "printf.h"
 
 static LPUART_Type *peripheralToAddress[UART_NUM_PERIPHERALS] = {NULL, LPUART1, LPUART2, LPUART3, LPUART4, LPUART5, LPUART6, LPUART7, LPUART8};
 static const IRQn_Type peripheralToIRQ[UART_NUM_PERIPHERALS] = LPUART_RX_TX_IRQS;
@@ -22,7 +24,10 @@ void UART_Init()
     {
         return;
     }
-    CCM->CCGR3 = 0xFFFFFFFF;
+    CCM->CCGR0 |= CCM_CCGR0_CG14_MASK | CCM_CCGR0_CG6_MASK;
+    CCM->CCGR1 |= CCM_CCGR0_CG12_MASK;
+    CCM->CCGR3 |= CCM_CCGR0_CG3_MASK | CCM_CCGR0_CG1_MASK;
+    CCM->CCGR6 |= CCM_CCGR0_CG7_MASK;
     CCM->CSCDR1 &= ~CCM_CSCDR1_UART_CLK_PODF_MASK;
 
     IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_PAD_CTL_PAD_GPIO_B1_12] = IOMUXC_SW_MUX_CTL_PAD_MUX_MODE(1); // TX
@@ -240,7 +245,13 @@ void LPUART8_IRQHandler() { LPUART_IRQHandler(UART8); }
 static void LPUART_IRQHandler(UART_Peripheral_t uartNum)
 {
     LPUART_Type *uart = peripheralToAddress[uartNum];
-
+    
+    for (uint8_t rxCount = getRXFIFOCount(uart); rxCount > 0; rxCount--)
+    {
+        rxData[uartNum][rxPutIndex[uartNum]] = uart->DATA & 0xFF;
+        rxPutIndex[uartNum]++;
+    }
+    
     for (uint8_t txCount = getTXFIFOCount(uart); txCount < UART_BUFFER_SIZE; txCount++)
     {
         if (txGetIndex[uartNum] == txPutIndex[uartNum])
@@ -250,12 +261,6 @@ static void LPUART_IRQHandler(UART_Peripheral_t uartNum)
         }
         uart->DATA |= txData[uartNum][txGetIndex[uartNum]];
         txGetIndex[uartNum]++;
-    }
-
-    for (uint8_t rxCount = getRXFIFOCount(uart); rxCount > 0; rxCount--)
-    {
-        rxData[uartNum][rxPutIndex[uartNum]] = uart->DATA & 0xFF;
-        rxPutIndex[uartNum]++;
     }
 }
 
