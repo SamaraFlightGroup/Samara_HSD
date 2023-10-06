@@ -1,41 +1,57 @@
 #include "UART.h"
+#include "GPIO.h"
+#include "printf.h"
 
-static LPUART_Type* peripheralToAddress[UART_NUM_PERIPHERALS] = { NULL, LPUART1, LPUART2, LPUART3, LPUART4, LPUART5, LPUART6, LPUART7, LPUART8 };
+static LPUART_Type *peripheralToAddress[UART_NUM_PERIPHERALS] = {NULL, LPUART1, LPUART2, LPUART3, LPUART4, LPUART5, LPUART6, LPUART7, LPUART8};
 static const IRQn_Type peripheralToIRQ[UART_NUM_PERIPHERALS] = LPUART_RX_TX_IRQS;
 
 static uint8_t txData[UART_NUM_PERIPHERALS][255];
 static uint8_t rxData[UART_NUM_PERIPHERALS][255];
-static uint8_t txPutIndex[UART_NUM_PERIPHERALS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-static uint8_t txGetIndex[UART_NUM_PERIPHERALS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-static uint8_t rxPutIndex[UART_NUM_PERIPHERALS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-static uint8_t rxGetIndex[UART_NUM_PERIPHERALS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+static uint8_t txPutIndex[UART_NUM_PERIPHERALS] = {0, 0, 0, 0, 0, 0, 0, 0};
+static uint8_t txGetIndex[UART_NUM_PERIPHERALS] = {0, 0, 0, 0, 0, 0, 0, 0};
+static uint8_t rxPutIndex[UART_NUM_PERIPHERALS] = {0, 0, 0, 0, 0, 0, 0, 0};
+static uint8_t rxGetIndex[UART_NUM_PERIPHERALS] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 static void LPUART_IRQHandler(UART_Peripheral_t uartNum);
-static inline uint8_t getTXFIFOCount(LPUART_Type* uart);
-static inline uint8_t getRXFIFOCount(LPUART_Type* uart);
-static uint16_t getDivider(UART_Config_t* config);
+static inline uint8_t getTXFIFOCount(LPUART_Type *uart);
+static inline uint8_t getRXFIFOCount(LPUART_Type *uart);
+static uint16_t getDivider(UART_Config_t *config);
 
+static bool init = false;
 void UART_Init()
 {
-    CCM->CCGR3 = 0xFFFFFFFF;
+    if (init)
+    {
+        return;
+    }
+    CCM->CCGR0 |= CCM_CCGR0_CG14_MASK | CCM_CCGR0_CG6_MASK;
+    CCM->CCGR1 |= CCM_CCGR0_CG12_MASK;
+    CCM->CCGR3 |= CCM_CCGR0_CG3_MASK | CCM_CCGR0_CG1_MASK;
+    CCM->CCGR6 |= CCM_CCGR0_CG7_MASK;
     CCM->CSCDR1 &= ~CCM_CSCDR1_UART_CLK_PODF_MASK;
 
     IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_PAD_CTL_PAD_GPIO_B1_12] = IOMUXC_SW_MUX_CTL_PAD_MUX_MODE(1); // TX
     IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_PAD_CTL_PAD_GPIO_B1_13] = IOMUXC_SW_MUX_CTL_PAD_MUX_MODE(1); // RX
-    //IOMUXC->SELECT_INPUT[kIOMUXC_LPUART5_TX_SELECT_INPUT] = 1;
+    // IOMUXC->SELECT_INPUT[kIOMUXC_LPUART5_TX_SELECT_INPUT] = 1;
     IOMUXC->SELECT_INPUT[kIOMUXC_LPUART5_RX_SELECT_INPUT] = 1;
+    init = true;
 }
-
+static bool printfInit = false;
 void printf_Init()
 {
+    if (printfInit)
+    {
+        return;
+    }
     UART_Init();
 
     UART_Config_t config;
     UART_GetDefaultConfig(&config, UART5, 115200);
     UART_SetConfig(&config);
+    printfInit = true;
 }
 
-void UART_GetDefaultConfig(UART_Config_t* config, UART_Peripheral_t uartNum, uint32_t baudRate)
+void UART_GetDefaultConfig(UART_Config_t *config, UART_Peripheral_t uartNum, uint32_t baudRate)
 {
     config->uart = peripheralToAddress[uartNum];
     config->uartNum = uartNum;
@@ -51,7 +67,7 @@ void UART_GetDefaultConfig(UART_Config_t* config, UART_Peripheral_t uartNum, uin
     config->baudRate = baudRate;
 }
 
-void UART_GetConfig(UART_Config_t* config, UART_Peripheral_t uartNum, uint32_t baudRate, bool tenBitMode, uint8_t overSamplingRatio, bool bothEdgeSampling, bool MSBFirst, bool txInvert, bool rxInvert, UART_Parity_t parity, bool twoStopBits)
+void UART_GetConfig(UART_Config_t *config, UART_Peripheral_t uartNum, uint32_t baudRate, bool tenBitMode, uint8_t overSamplingRatio, bool bothEdgeSampling, bool MSBFirst, bool txInvert, bool rxInvert, UART_Parity_t parity, bool twoStopBits)
 {
     config->uart = peripheralToAddress[uartNum];
     config->uartNum = uartNum;
@@ -67,7 +83,7 @@ void UART_GetConfig(UART_Config_t* config, UART_Peripheral_t uartNum, uint32_t b
     config->baudRate = baudRate;
 }
 
-void UART_SetConfig(UART_Config_t* config)
+void UART_SetConfig(UART_Config_t *config)
 {
     config->uart->GLOBAL = LPUART_GLOBAL_RST(1);
     config->uart->GLOBAL = LPUART_GLOBAL_RST(0);
@@ -77,15 +93,15 @@ void UART_SetConfig(UART_Config_t* config)
     config->uart->PINCFG = 0;
 
     config->uart->BAUD = LPUART_BAUD_M10(config->tenBitMode) | LPUART_BAUD_OSR(config->overSamplingRatio - 1) |
-        LPUART_BAUD_BOTHEDGE(config->bothEdgeSampling) | LPUART_BAUD_SBR(divider);
+                         LPUART_BAUD_BOTHEDGE(config->bothEdgeSampling) | LPUART_BAUD_SBR(divider);
 
     config->uart->CTRL = LPUART_CTRL_TXINV(config->txInvert) | LPUART_CTRL_PE(config->parity) |
-        LPUART_CTRL_PT(config->parity >> 1) | LPUART_CTRL_RIE_MASK;
+                         LPUART_CTRL_PT(config->parity >> 1) | LPUART_CTRL_RIE_MASK;
 
     config->uart->STAT = LPUART_STAT_LBKDIF_MASK | LPUART_STAT_RXEDGIF_MASK | LPUART_STAT_MSBF(config->MSBFirst) |
-        LPUART_STAT_RXINV(config->rxInvert) | LPUART_STAT_IDLE_MASK | LPUART_STAT_OR_MASK |
-        LPUART_STAT_NF_MASK | LPUART_STAT_FE_MASK | LPUART_STAT_PF_MASK |
-        LPUART_STAT_MA1F_MASK | LPUART_STAT_MA2F_MASK;
+                         LPUART_STAT_RXINV(config->rxInvert) | LPUART_STAT_IDLE_MASK | LPUART_STAT_OR_MASK |
+                         LPUART_STAT_NF_MASK | LPUART_STAT_FE_MASK | LPUART_STAT_PF_MASK |
+                         LPUART_STAT_MA1F_MASK | LPUART_STAT_MA2F_MASK;
 
     config->uart->FIFO = LPUART_FIFO_TXFE_MASK | LPUART_FIFO_RXFE_MASK;
     config->uart->FIFO |= LPUART_FIFO_TXFLUSH_MASK | LPUART_FIFO_RXFLUSH_MASK;
@@ -99,15 +115,15 @@ void UART_SetConfig(UART_Config_t* config)
 
 void UART_Write(UART_Peripheral_t uartNum, uint8_t data)
 {
-    LPUART_Type* uart = peripheralToAddress[uartNum];
+    LPUART_Type *uart = peripheralToAddress[uartNum];
     txData[uartNum][txPutIndex[uartNum]] = data;
     txPutIndex[uartNum]++;
     uart->CTRL |= LPUART_CTRL_TIE_MASK;
 }
 
-void UART_WriteBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t size)
+void UART_WriteBytes(UART_Peripheral_t uartNum, uint8_t *data, uint8_t size)
 {
-    LPUART_Type* uart = peripheralToAddress[uartNum];
+    LPUART_Type *uart = peripheralToAddress[uartNum];
     for (uint8_t i = 0; i < size; i++)
     {
         txData[uartNum][txPutIndex[uartNum]] = data[i];
@@ -128,7 +144,7 @@ uint8_t UART_Read(UART_Peripheral_t uartNum)
     return data;
 }
 
-void UART_ReadBytes(UART_Peripheral_t uartNum, uint8_t* data, uint8_t* size)
+void UART_ReadBytes(UART_Peripheral_t uartNum, uint8_t *data, uint8_t *size)
 {
     if (UART_GetBytesAvailable(uartNum) < *size)
     {
@@ -172,14 +188,14 @@ inline void UART6_Write(uint8_t data) { UART_Write(UART6, data); }
 inline void UART7_Write(uint8_t data) { UART_Write(UART7, data); }
 inline void UART8_Write(uint8_t data) { UART_Write(UART8, data); }
 
-inline void UART1_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART1, data, size); }
-inline void UART2_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART2, data, size); }
-inline void UART3_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART3, data, size); }
-inline void UART4_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART4, data, size); }
-inline void UART5_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART5, data, size); }
-inline void UART6_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART6, data, size); }
-inline void UART7_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART7, data, size); }
-inline void UART8_WriteBytes(uint8_t* data, uint8_t size) { UART_WriteBytes(UART8, data, size); }
+inline void UART1_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART1, data, size); }
+inline void UART2_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART2, data, size); }
+inline void UART3_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART3, data, size); }
+inline void UART4_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART4, data, size); }
+inline void UART5_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART5, data, size); }
+inline void UART6_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART6, data, size); }
+inline void UART7_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART7, data, size); }
+inline void UART8_WriteBytes(uint8_t *data, uint8_t size) { UART_WriteBytes(UART8, data, size); }
 
 inline uint8_t UART1_Read() { return UART_Read(UART1); }
 inline uint8_t UART2_Read() { return UART_Read(UART2); }
@@ -190,14 +206,14 @@ inline uint8_t UART6_Read() { return UART_Read(UART6); }
 inline uint8_t UART7_Read() { return UART_Read(UART7); }
 inline uint8_t UART8_Read() { return UART_Read(UART8); }
 
-inline void UART1_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART1, data, size); }
-inline void UART2_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART2, data, size); }
-inline void UART3_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART3, data, size); }
-inline void UART4_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART4, data, size); }
-inline void UART5_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART5, data, size); }
-inline void UART6_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART6, data, size); }
-inline void UART7_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART7, data, size); }
-inline void UART8_ReadBytes(uint8_t* data, uint8_t* size) { UART_ReadBytes(UART8, data, size); }
+inline void UART1_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART1, data, size); }
+inline void UART2_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART2, data, size); }
+inline void UART3_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART3, data, size); }
+inline void UART4_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART4, data, size); }
+inline void UART5_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART5, data, size); }
+inline void UART6_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART6, data, size); }
+inline void UART7_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART7, data, size); }
+inline void UART8_ReadBytes(uint8_t *data, uint8_t *size) { UART_ReadBytes(UART8, data, size); }
 
 inline bool UART1_IsDataAvailable() { return UART_IsDataAvailable(UART1); }
 inline bool UART2_IsDataAvailable() { return UART_IsDataAvailable(UART2); }
@@ -228,8 +244,14 @@ void LPUART8_IRQHandler() { LPUART_IRQHandler(UART8); }
 
 static void LPUART_IRQHandler(UART_Peripheral_t uartNum)
 {
-    LPUART_Type* uart = peripheralToAddress[uartNum];
-
+    LPUART_Type *uart = peripheralToAddress[uartNum];
+    
+    for (uint8_t rxCount = getRXFIFOCount(uart); rxCount > 0; rxCount--)
+    {
+        rxData[uartNum][rxPutIndex[uartNum]] = uart->DATA & 0xFF;
+        rxPutIndex[uartNum]++;
+    }
+    
     for (uint8_t txCount = getTXFIFOCount(uart); txCount < UART_BUFFER_SIZE; txCount++)
     {
         if (txGetIndex[uartNum] == txPutIndex[uartNum])
@@ -240,24 +262,18 @@ static void LPUART_IRQHandler(UART_Peripheral_t uartNum)
         uart->DATA |= txData[uartNum][txGetIndex[uartNum]];
         txGetIndex[uartNum]++;
     }
-
-    for (uint8_t rxCount = getRXFIFOCount(uart); rxCount > 0; rxCount--)
-    {
-        rxData[uartNum][rxPutIndex[uartNum]] = uart->DATA & 0xFF;
-        rxPutIndex[uartNum]++;
-    }
 }
 
-static inline uint8_t getTXFIFOCount(LPUART_Type* uart)
+static inline uint8_t getTXFIFOCount(LPUART_Type *uart)
 {
     return ((uart->WATER & LPUART_WATER_TXCOUNT_MASK) >> LPUART_WATER_TXCOUNT_SHIFT);
 }
-static inline uint8_t getRXFIFOCount(LPUART_Type* uart)
+static inline uint8_t getRXFIFOCount(LPUART_Type *uart)
 {
     return ((uart->WATER & LPUART_WATER_RXCOUNT_MASK) >> LPUART_WATER_RXCOUNT_SHIFT);
 }
 
-static uint16_t getDivider(UART_Config_t* config)
+static uint16_t getDivider(UART_Config_t *config)
 {
     const uint32_t sourceClock = 80000000;
     uint16_t divider = sourceClock / config->overSamplingRatio / config->baudRate;

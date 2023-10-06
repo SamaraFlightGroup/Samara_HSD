@@ -1,7 +1,12 @@
 #include "GPIO.h"
-
+static bool init = false;
 void GPIO_Init()
 {
+    if(init)
+    {
+        return;
+    }
+    
     CCM->CCGR0 |= CCM_CCGR0_CG15_MASK;                       // Enable GPIO 2 clock
     CCM->CCGR1 |= CCM_CCGR1_CG15_MASK | CCM_CCGR1_CG13_MASK; // Enable GPIO 5 and GPIO 1 clock
     CCM->CCGR2 |= CCM_CCGR2_CG13_MASK;                       // Enable GPIO 3 clock
@@ -13,6 +18,7 @@ void GPIO_Init()
     IOMUXC_GPR->GPR29 = 0xFFFFFFFF;
 
     GPIO_Mode(LED_PIN, OUTPUT);
+    init = true;
 }
 
 void GPIO_Write(uint8_t pin_num, uint8_t value)

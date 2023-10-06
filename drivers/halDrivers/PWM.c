@@ -4,9 +4,16 @@ static void setFrequency(PWM_Config_t *config);
 static void writeA(PWM_Type *pwm, uint8_t submodule, int16_t value);
 static void writeB(PWM_Type *pwm, uint8_t submodule, int16_t value);
 
+static bool init = false;
 void PWM_Init()
 {
+    if(init)
+    {
+        return;
+    }
+
     CCM->CCGR4 = 0xFFFFFFFF;
+    init = true;
 }
 
 void PWM_GetDefaultConfig(PWM_Config_t *config, PWM_Type *pwm, uint8_t submodule, PWM_OutChannel_t outChannel)

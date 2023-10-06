@@ -20,13 +20,19 @@ static uint8_t getRXFIFOCount(LPI2C_Type* i2c);
 static void setBaudRate(I2C_Config_t* config);
 // static bool arbitrationLost(I2C_Peripheral_t i2cNum);
 
+static bool init = false;
 void I2C_Init()
 {
+    if(init)
+    {
+        return;
+    }
     // pin 19 is SCL ICM
     // pin 18 is SDA ICM
     CCM->CCGR2 |= CCM_CCGR2_CG3_MASK | CCM_CCGR2_CG4_MASK | CCM_CCGR2_CG5_MASK; // enable LPI2C(1,2,3) clocks
     CCM->CCGR6 |= CCM_CCGR6_CG12_MASK;                                          // enable LPI2C4 clocks
     CCM->CSCDR2 &= ~(CCM_CSCDR2_LPI2C_CLK_PODF_MASK | CCM_CSCDR2_LPI2C_CLK_SEL_MASK);
+    init = true;
 }
 
 void I2C_GetDefaultConfig(I2C_Config_t* config, I2C_Peripheral_t i2cNum, uint32_t baudRate)
