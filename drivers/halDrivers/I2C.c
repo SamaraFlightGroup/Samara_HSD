@@ -56,7 +56,7 @@ void I2C_SetConfig(I2C_Config_t* config)
 
     // config->i2c->MCFGR3 = 0;
 
-    config->i2c->MFCR = LPI2C_MFCR_TXWATER(0) | LPI2C_MFCR_RXWATER(0);
+    config->i2c->MFCR = LPI2C_MFCR_TXWATER(2) | LPI2C_MFCR_RXWATER(0);
 
     config->i2c->MIER = LPI2C_MIER_RDIE_MASK; // enable interrupts
 
