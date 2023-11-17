@@ -245,13 +245,13 @@ void LPUART8_IRQHandler() { LPUART_IRQHandler(UART8); }
 static void LPUART_IRQHandler(UART_Peripheral_t uartNum)
 {
     LPUART_Type *uart = peripheralToAddress[uartNum];
-    
+
     for (uint8_t rxCount = getRXFIFOCount(uart); rxCount > 0; rxCount--)
     {
         rxData[uartNum][rxPutIndex[uartNum]] = uart->DATA & 0xFF;
         rxPutIndex[uartNum]++;
     }
-    
+
     for (uint8_t txCount = getTXFIFOCount(uart); txCount < UART_BUFFER_SIZE; txCount++)
     {
         if (txGetIndex[uartNum] == txPutIndex[uartNum])
