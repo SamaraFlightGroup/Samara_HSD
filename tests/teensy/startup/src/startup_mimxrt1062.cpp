@@ -10,11 +10,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //*****************************************************************************
 
-#if defined(DEBUG)
-#pragma GCC push_options
-#pragma GCC optimize("Og")
-#endif // (DEBUG)
-
 #if defined(__cplusplus)
 #ifdef __REDLIB__
 #error Redlib does not support C++

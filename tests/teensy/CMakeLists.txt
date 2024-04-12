@@ -47,26 +47,28 @@ add_compile_options(
     -Wall
     -Wextra
     -Wpedantic
-    -Werror #Make warnings errors
+    #-Werror #Make warnings errors
     -Wfloat-equal # warn float equal
     -Wswitch-default #warn no default
     -Wstack-usage=10000 #warn very large stack
 )
 
 add_compile_definitions(
+    #CPU definititions
+    CPU_MIMXRT1062DVJ6A
+    CPU_MIMXRT1062DVJ6A_cm7
+    #definitions for boot
+    XIP_EXTERNAL_FLASH=1
+    XIP_BOOT_HEADER_ENABLE=1
+    #definitions for startup
+    __MCUXPRESSO
+    __USE_CMSIS
 
-        CPU_MIMXRT1062DVJ6A
-        CPU_MIMXRT1062DVJ6A_cm7
+    #For pinInfo
+    TEENSY41
 
-        XIP_EXTERNAL_FLASH=1
-        XIP_BOOT_HEADER_ENABLE=1
-
-        __MCUXPRESSO
-        __USE_CMSIS
-        DEBUG
-
-        TEENSY41
-        _XOPEN_SOURCE
+    #for math libs
+    _XOPEN_SOURCE
 )
 
 add_link_options(
@@ -78,6 +80,11 @@ add_link_options(
         -mthumb
         -mfpu=fpv5-sp-d16
         -mfloat-abi=hard
+
+        #Make sure boot things are included
+        -uqspiflash_config
+        -uimage_vector_table
+        -ug_boot_data
 
         #link options
         -nostdlib
@@ -96,11 +103,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
     set(TEST_EXECUTABLE "${TEST_NAME}.elf")
 
-    set(TEST_SOURCE
-    ${TEST_SOURCE}
-    boot/src/evkmimxrt1060_flexspi_nor_config.c
-    boot/src/fsl_flexspi_nor_boot.c
-    )
+    set(TEST_SOURCE ${TEST_SOURCE})
 
     add_executable(${TEST_EXECUTABLE} ${TEST_SOURCE})
 
