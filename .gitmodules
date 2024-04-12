@@ -1,0 +1,3 @@
+[submodule "Samara_HAL"]
+	path = Samara_HAL
+	url = https://github.com/Sociotorn/Samara_HAL.git
