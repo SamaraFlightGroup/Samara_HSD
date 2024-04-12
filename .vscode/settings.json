@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "${workspaceFolder}/tests",
+    "files.associations": {
+        "pininfo.h": "c"
+    },
+}
