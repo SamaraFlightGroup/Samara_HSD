@@ -20,8 +20,8 @@ set(C_EXTENSIONS off)
 
 set(TEST_SOURCES
     testGPIO.c
+    testStartup.c
 )
-set(LINKER_FILE ${CMAKE_CURRENT_SOURCE_DIR}/linker/MIMXRT1062_EVK_Debug.ld)
 
 add_compile_options(
     # optimization settings
@@ -71,6 +71,12 @@ add_compile_definitions(
     _XOPEN_SOURCE
 )
 
+set(LINKER_FILE "LD NOT FOUND")
+add_subdirectory(../.. build/Samara_HSD)
+get_property(LINKER_FILE GLOBAL PROPERTY MIMXRT1062_LINKER_FILE)
+
+message("Using ${LINKER_FILE} as a linker file")
+
 add_link_options(
         #linker file
         -T${LINKER_FILE}
@@ -94,9 +100,7 @@ add_link_options(
         -Wl,-print-memory-usage
 )
 
-add_subdirectory(../.. ../../build/SAMARA_HSD)
-add_subdirectory(boot)
-add_subdirectory(startup)
+# add_subdirectory(../.. build/Samara_HSD)
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
     get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
@@ -107,8 +111,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 
     add_executable(${TEST_EXECUTABLE} ${TEST_SOURCE})
 
-    target_link_libraries(${TEST_EXECUTABLE} SAMARA_HSD STARTUP BOOT)
-    target_link_directories(${TEST_EXECUTABLE} PRIVATE linker)
+    target_link_libraries(${TEST_EXECUTABLE} SAMARA_HSD)
 
     # Optional: Print executable size as part of the post build process
     add_custom_command(TARGET ${TEST_EXECUTABLE}

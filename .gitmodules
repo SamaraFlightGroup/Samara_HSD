@@ -1,3 +1,6 @@
 [submodule "Samara_HAL"]
 	path = Samara_HAL
 	url = https://github.com/Sociotorn/Samara_HAL.git
+[submodule "Samara_HSD/MIMXRT1062_HSD/lib/MIMXRT1062_Lib_CMake"]
+	path = Samara_HSD/MIMXRT1062_HSD/lib/MIMXRT1062_Lib_CMake
+	url = https://github.com/Sociotorn/MIMXRT1062_Lib_CMake.git

@@ -1,6 +1,13 @@
 {
-    "cmake.sourceDirectory": "${workspaceFolder}/tests",
+    "cmake.sourceDirectory": "/home/jsoccerd/Coding/Samara_HSD/tests/teensy",
     "files.associations": {
         "pininfo.h": "c"
+    },
+    "vim.useSystemClipboard": true,
+    "vim.handleKeys": {
+        "<C-d>": true,
+        "<C-s>": false,
+        "<C-z>": false,
+        "<C-p>": false
     },
 }
