@@ -1,17 +1,21 @@
-add_subdirectory(lib/MIMXRT1062_Lib_CMake)
-
 add_library(
     MIMXRT1062_HSD STATIC
 
-    "src/public/GPIO.c"
-    "src/public/IOMUX.c"
-    "src/public/time.cpp"
-    "src/public/PWM.c"
-    "src/public/UART.c"
-    "src/public/I2C.c"
-    "src/public/ADC.c"
+    "public/src/GPIO.c"
+    "public/src/IOMUX.c"
+    "public/src/time.cpp"
+    "public/src/PWM.c"
+    "public/src/UART.c"
+    "public/src/I2C.c"
+    "public/src/ADC.c"
+
+    "public/src/mimxrt1062_dma.c"
+    "public/src/mimxrt1062_usart.c"
+    "public/src/mimxrt1062_iomux.c"
 )
 
-target_include_directories(MIMXRT1062_HSD PUBLIC include/public lib PRIVATE include/private)
+set_property(GLOBAL PROPERTY MIMXRT1062_LINKER_FILE ${CMAKE_CURRENT_SOURCE_DIR}public/linker/MIMXRT1062.ld)
 
-target_link_libraries(MIMXRT1062_HSD SAMARA_HAL MIMXRT1062_LIB)
+target_include_directories(MIMXRT1062_HSD PUBLIC public/include PRIVATE private/include)
+
+target_link_libraries(MIMXRT1062_HSD SAMARA_HAL CMSIS)

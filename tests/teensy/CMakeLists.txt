@@ -21,6 +21,8 @@ set(C_EXTENSIONS off)
 set(TEST_SOURCES
     testGPIO.c
     testStartup.c
+    testUART.c
+    testDMA.c
 )
 
 add_compile_options(

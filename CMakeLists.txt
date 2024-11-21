@@ -1,2 +1,1 @@
-add_subdirectory(Samara_HAL)
 add_subdirectory(Samara_HSD)

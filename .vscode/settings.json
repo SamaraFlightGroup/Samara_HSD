@@ -1,7 +1,8 @@
 {
     "cmake.sourceDirectory": "/home/jsoccerd/Coding/Samara_HSD/tests/teensy",
     "files.associations": {
-        "pininfo.h": "c"
+        "pininfo.h": "c",
+        "cachel1_armv7.h": "c"
     },
     "vim.useSystemClipboard": true,
     "vim.handleKeys": {

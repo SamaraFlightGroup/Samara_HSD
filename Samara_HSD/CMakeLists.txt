@@ -1,6 +1,13 @@
+add_subdirectory(lib)
 add_subdirectory(MIMXRT1062_HSD)
-# add_subdirectory(LinuxSim)
 
-add_library(SAMARA_HSD INTERFACE)
+add_library(
+    SAMARA_HSD STATIC
 
-target_link_libraries(SAMARA_HSD INTERFACE MIMXRT1062_HSD)
+    "public/src/ssd_dma.c"
+
+)
+
+target_include_directories(SAMARA_HSD PUBLIC "public/include" PRIVATE "private/include")
+
+target_link_libraries(SAMARA_HSD INTERFACE SAMARA_HAL MIMXRT1062_HSD)

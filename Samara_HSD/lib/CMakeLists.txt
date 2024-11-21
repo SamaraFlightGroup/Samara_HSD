@@ -1,0 +1,2 @@
+add_subdirectory(Samara_HAL)
+add_subdirectory(CMSIS_Core_CMake)
